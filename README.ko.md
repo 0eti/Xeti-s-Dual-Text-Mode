@@ -30,7 +30,12 @@
 | `dual_text_mod/Paperlogy-6SemiBold.ttf` | 두 번째 텍스트와 설정창 글꼴 |
 | `dual_text_mod/setting_icon.png` | 톱니바퀴 아이콘 |
 
-컴파일된 `.rpyc` 파일도 함께 들어 있습니다.
+컴파일된 `.rpyc` 파일도 함께 들어 있습니다. Ren'Py는 아카이브 안에서는 `.rpyc`만 읽으므로, `.rpy`를 고치면 `.rpyc`를 다시 컴파일해야 바뀐 내용이 적용됩니다. 소스는 레포의 `dual_text_mod/` 폴더에 있습니다.
+
+## 빌드
+
+- `.rpyc`는 **지원하려는 가장 오래된 Ren'Py 8 버전으로** 컴파일합니다. 새 버전은 옛 `.rpyc`를 읽지만, 옛 버전은 새 `.rpyc`를 읽지 못해 게임이 `Could not load from archive` 오류로 실행되지 않습니다. (예: 8.5.3에서 컴파일하면 8.2.1 게임에서 실행되지 않음)
+- 현재 `dual_text_mod.rpa`는 Ren'Py 8.2.1로 컴파일했고 8.2.1, 8.3.2, 8.5.2, 8.5.3에서 확인했습니다. Ren'Py 7은 지원하지 않습니다.
 
 ## 구조
 

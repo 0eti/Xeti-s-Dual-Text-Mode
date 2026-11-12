@@ -31,7 +31,12 @@ A Ren'Py mod that shows a second text under each line of dialogue: the same line
 | `dual_text_mod/Paperlogy-6SemiBold.ttf` | Font for the second text and the settings window |
 | `dual_text_mod/setting_icon.png` | Gear icon |
 
-The archive also holds the compiled `.rpyc` files.
+The archive also holds the compiled `.rpyc` files. Ren'Py reads only the `.rpyc` files from inside an archive, so after editing a `.rpy` file the `.rpyc` must be compiled again for the change to take effect. The sources are in the `dual_text_mod/` folder of this repository.
+
+## Building
+
+- Compile the `.rpyc` files with **the oldest Ren'Py 8 version you want to support**. Newer versions read older `.rpyc` files, but older versions cannot read newer ones and the game stops with `Could not load from archive` (for example, files compiled with 8.5.3 do not run in an 8.2.1 game).
+- The current `dual_text_mod.rpa` was compiled with Ren'Py 8.2.1 and checked on 8.2.1, 8.3.2, 8.5.2 and 8.5.3. Ren'Py 7 is not supported.
 
 ## Structure
 
