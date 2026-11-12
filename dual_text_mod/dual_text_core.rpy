@@ -10,29 +10,68 @@ default persistent.sub_language = "None"
 default persistent.dual_text_size = 30
 default persistent.dual_text_yalign = 0.8
 default persistent.dual_text_xpos = 0.2
-default persistent.dual_text_xmaximum = 1400
 default persistent.dual_text_line_spacing = 0
 default persistent.dual_text_color = "#FFFFFF"
 default persistent.dual_text_alpha = 100
 default persistent.dual_text_behind = False
-default persistent.original_line_spacing = 0
+# 원본 대사 줄 간격. None이면 게임이 정한 값을 그대로 둔다.
+# (예전 persistent.original_line_spacing은 기본값 0이 게임 값을 덮어써서 더 이상 읽지 않는다)
+default persistent.dual_text_dialogue_line_spacing = None
 
 init python:
     import re
-    _previous_line_spacing = None
+
+    # 서브텍스트 박스 너비 (화면 너비 대비 비율).
+    # 예전 버전은 픽셀(persistent.dual_text_xmaximum)로 저장했으므로 한 번 비율로 옮긴다.
+    if persistent.dual_text_width is None:
+        if persistent.dual_text_xmaximum is not None:
+            _dual_text_width = persistent.dual_text_xmaximum / float(config.screen_width)
+        else:
+            _dual_text_width = 0.7
+        persistent.dual_text_width = max(0.1, min(1.0, round(_dual_text_width, 2)))
+
+    def dual_text_box_width():
+        """서브텍스트 박스 너비(px). 화면 오른쪽 끝을 넘지 않게 자른다."""
+        width = persistent.dual_text_width or 0.7
+        room = 1.0 - (persistent.dual_text_xpos or 0.0)
+        return max(1, int(config.screen_width * max(0.05, min(width, room))))
+
+    # 줄 간격 상태는 클래스 속성에 둔다. store 변수와 달리 세이브·롤백에 섞이지 않는다.
+    class _DualTextLineSpacing(object):
+        game_value = None   # 게임이 정한 값
+        applied = None      # 모드가 마지막으로 넣은 값 (안 건드렸으면 None)
 
     def apply_original_line_spacing():
-        global _previous_line_spacing
-        if persistent.original_line_spacing is not None:
-            if _previous_line_spacing != persistent.original_line_spacing:
-                style.say_dialogue.line_spacing = persistent.original_line_spacing
+        state = _DualTextLineSpacing
+        target = persistent.dual_text_dialogue_line_spacing
+        current = style.say_dialogue.line_spacing
+
+        # 모드가 넣은 값이 아니면 지금 값이 게임 값이다.
+        # (Ren'Py는 언어를 바꾸거나 시작할 때 스타일을 init 직후 상태로 되돌린다)
+        if state.applied is None or current != state.applied:
+            state.game_value = current
+            state.applied = None
+
+        if target is None:
+            if state.applied is not None:
+                style.say_dialogue.line_spacing = state.game_value
                 style.rebuild()
-                _previous_line_spacing = persistent.original_line_spacing
-                
-    if apply_original_line_spacing not in config.start_callbacks:
-        config.start_callbacks.append(apply_original_line_spacing)
-    if apply_original_line_spacing not in config.after_load_callbacks:
-        config.after_load_callbacks.append(apply_original_line_spacing)
+                state.applied = None
+            return
+
+        if current != target:
+            style.say_dialogue.line_spacing = target
+            style.rebuild()
+        state.applied = target
+
+    def dual_text_start_custom_line_spacing():
+        """'직접 조절'을 누르면 지금 게임 값에서 슬라이더를 시작한다."""
+        current = style.say_dialogue.line_spacing or 0
+        persistent.dual_text_dialogue_line_spacing = max(0, min(50, int(current)))
+
+    # 인터랙션마다 확인한다. 값이 같으면 아무것도 하지 않으므로 비용은 비교 한 번이다.
+    if apply_original_line_spacing not in config.interact_callbacks:
+        config.interact_callbacks.append(apply_original_line_spacing)
 
 # --------------------------------------------------------
 # 서브 텍스트 추출 
@@ -158,8 +197,20 @@ screen dual_text_settings():
 
                     vbox:
                         spacing 5
-                        text "원본 대사 줄 간격: [persistent.original_line_spacing]px" size 20 color "#FFD700"
-                        bar value VariableValue("persistent.original_line_spacing", range=50, offset=0, step=1) xmaximum 350
+                        if persistent.dual_text_dialogue_line_spacing is None:
+                            text "원본 대사 줄 간격: 게임 기본값" size 20 color "#FFD700"
+                        else:
+                            text "원본 대사 줄 간격: [persistent.dual_text_dialogue_line_spacing]px" size 20 color "#FFD700"
+                        hbox:
+                            spacing 15
+                            textbutton "게임 기본값":
+                                action SetVariable("persistent.dual_text_dialogue_line_spacing", None)
+                                selected (persistent.dual_text_dialogue_line_spacing is None)
+                            textbutton "직접 조절":
+                                action Function(dual_text_start_custom_line_spacing)
+                                selected (persistent.dual_text_dialogue_line_spacing is not None)
+                        if persistent.dual_text_dialogue_line_spacing is not None:
+                            bar value VariableValue("persistent.dual_text_dialogue_line_spacing", range=50, offset=0, step=1) xmaximum 350
 
                     vbox:
                         spacing 5
@@ -198,8 +249,9 @@ screen dual_text_settings():
                         
                     vbox:
                         spacing 5
-                        text "서브텍스트 박스 너비 조절: [persistent.dual_text_xmaximum]px" size 20
-                        bar value VariableValue("persistent.dual_text_xmaximum", range=1900, offset=100, step=10) xmaximum 350
+                        $ dual_text_width_pct = int(round((persistent.dual_text_width or 0.7) * 100))
+                        text "서브텍스트 박스 너비 조절: 화면의 [dual_text_width_pct]%" size 20
+                        bar value VariableValue("persistent.dual_text_width", range=0.9, offset=0.1, step=0.05) xmaximum 350
 
                     vbox:
                         spacing 5
@@ -253,7 +305,7 @@ screen dual_text_content():
             xpos persistent.dual_text_xpos
             ypos persistent.dual_text_yalign
             yanchor 0.0 
-            xmaximum int(persistent.dual_text_xmaximum)
+            xmaximum dual_text_box_width()
             
             text sub_text:
                 font "dual_text_mod/Paperlogy-6SemiBold.ttf" 
