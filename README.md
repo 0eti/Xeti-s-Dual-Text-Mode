@@ -75,3 +75,7 @@ flowchart LR
 ## Credits
 
 - Color picker: "Color Picker for Ren'Py" by Feniks ([feniksdev.com](https://feniksdev.com)). In this mod its global names carry a `dual_text_` prefix.
+
+## License
+
+The mod's own code is under the [MIT License](LICENSE). The color picker and the Paperlogy font keep their authors' terms; [LICENSE](LICENSE) lists them.

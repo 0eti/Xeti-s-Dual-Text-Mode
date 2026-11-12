@@ -74,3 +74,7 @@ flowchart LR
 ## 만든 사람 표기
 
 - 색상 선택기: Feniks의 "Color Picker for Ren'Py" ([feniksdev.com](https://feniksdev.com)). 이 모드에서는 전역 이름 앞에 `dual_text_`를 붙였습니다.
+
+## 라이선스
+
+모드 자체 코드는 [MIT 라이선스](LICENSE)를 따릅니다. 색상 선택기와 Paperlogy 글꼴은 각 제작자의 조건을 따르며, [LICENSE](LICENSE)에 적어 두었습니다.
