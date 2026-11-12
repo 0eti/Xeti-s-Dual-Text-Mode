@@ -9,7 +9,7 @@
 - 게임은 지금 언어 그대로 두고, 현재 대사를 다른 언어(원문 스크립트 또는 게임에 들어 있는 번역)로 함께 보여 줍니다
 - 오른쪽 위 톱니바퀴 아이콘으로 설정창을 엽니다:
   - 모드 켜기/끄기
-  - 표시할 언어 (`원문` = 원래 스크립트, 또는 게임에 있는 언어)
+  - 표시할 언어 (`원문` = 원래 스크립트, 또는 게임에 있는 언어). 게임이 이미 같은 언어로 보여 주고 있으면 두 번째 텍스트는 숨깁니다
   - 글자 크기, 줄 간격, 투명도, 색상 (색상 선택기)
   - 텍스트 상자의 상하 위치, 좌우 시작 위치, 너비
   - 텍스트를 대사창 앞에 둘지 뒤에 둘지
@@ -20,6 +20,8 @@
 
 1. `dual_text_mod.rpa`를 게임의 `game` 폴더에 넣습니다.
 2. 게임을 실행하면 화면 오른쪽 위에 톱니바퀴 아이콘이 나타납니다.
+
+Ren'Py 8 게임에서 동작합니다 (8.2.1, 8.3.2, 8.5.2, 8.5.3에서 확인). Ren'Py 7 게임은 지원하지 않습니다.
 
 ## `dual_text_mod.rpa` 안의 파일
 
@@ -43,7 +45,7 @@
 flowchart LR
     say(["화면의 대사<br/><code>say</code> 화면"])
     id["현재 대사 ID<br/><code>translate_identifier</code>"]
-    get["대사 찾기<br/><code>get_sub_text()</code><br/>대사·언어별 캐시"]
+    get["대사 찾기<br/><code>dual_text_mod.get_sub_text()</code><br/>대사·언어별 캐시"]
     script[("게임 스크립트<br/>원문 대사<br/>tl 번역")]
     overlay["오버레이 화면<br/>앞: zorder 50<br/>뒤: zorder -1"]
     icon["톱니바퀴 아이콘<br/><code>dual_text_icon</code>"]
@@ -60,7 +62,15 @@ flowchart LR
 
 - 세 화면(톱니바퀴 아이콘, 앞 오버레이, 뒤 오버레이)을 `config.overlay_screens`에 넣기 때문에, 게임의 화면 파일을 고치지 않아도 어떤 게임 위에나 나타납니다.
 - 두 번째 텍스트는 `say` 화면이 떠 있을 때만 그립니다.
+- 모드의 함수는 `dual_text_mod` 네임스페이스에 있고, 모드가 추가하는 화면·스타일·트랜스폼·이미지 이름은 모두 `dual_text_`로 시작해서 게임의 이름과 겹치지 않습니다.
+
+## 한계
+
+- NVL 모드에서는 표시되지 않습니다. `say` 화면이 떠 있을 때만 그리기 때문입니다.
+- `extend` 대사는 이어 붙인 부분만 보입니다. 번역에서 한 대사를 여러 줄로 나눈 경우 첫 줄만 보입니다.
+- 원본 대사 줄 간격 설정은 게임이 대사를 `say_dialogue` 스타일로 그릴 때만 적용됩니다.
+- Ren'Py 내부 API(`translator.default_translates`, `translator.language_translates`)를 읽기 때문에 이후 Ren'Py 버전에서 바뀔 수 있습니다.
 
 ## 만든 사람 표기
 
-- 색상 선택기: Feniks의 "Color Picker for Ren'Py" ([feniksdev.com](https://feniksdev.com))
+- 색상 선택기: Feniks의 "Color Picker for Ren'Py" ([feniksdev.com](https://feniksdev.com)). 이 모드에서는 전역 이름 앞에 `dual_text_`를 붙였습니다.
