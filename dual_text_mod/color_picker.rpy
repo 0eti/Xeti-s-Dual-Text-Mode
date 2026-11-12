@@ -15,13 +15,16 @@
 ## if you run into any issues.
 ## https://feniksdev.itch.io/color-picker-for-renpy
 ## https://github.com/shawna-p/renpy-color-picker
+## Modified for Xeti's Dual Text Mode: every global name (class, transforms,
+## shaders, functions, images, style) is prefixed with dual_text_ so the mod
+## does not clash with a game that ships its own copy of this picker.
 ################################################################################
 ################################################################################
 ## SHADERS & TRANSFORMS
 ################################################################################
 init python:
     ## A shader which creates a gradient for a colour picker.
-    renpy.register_shader("feniks.color_picker", variables="""
+    renpy.register_shader("dual_text.color_picker", variables="""
         uniform vec4 u_gradient_top_right;
         uniform vec4 u_gradient_top_left;
         uniform vec4 u_gradient_bottom_left;
@@ -43,7 +46,7 @@ init python:
     """)
 
     ## A shader which creates a spectrum. Generally for colour pickers.
-    renpy.register_shader("feniks.spectrum", variables="""
+    renpy.register_shader("dual_text.spectrum", variables="""
         uniform float u_lightness;
         uniform float u_saturation;
         uniform float u_horizontal;
@@ -83,8 +86,8 @@ init python:
 ## If horizontal is True, the spectrum goes from left to right instead of
 ## top to bottom. You can also adjust the lightness and saturation
 ## (between 0 and 1).
-transform spectrum(horizontal=True, light=0.5, sat=1.0):
-    shader "feniks.spectrum"
+transform dual_text_spectrum(horizontal=True, light=0.5, sat=1.0):
+    shader "dual_text.spectrum"
     u_lightness light
     u_saturation sat
     u_horizontal float(horizontal)
@@ -92,9 +95,9 @@ transform spectrum(horizontal=True, light=0.5, sat=1.0):
 ## A transform which creates a square with a gradient. By default, only the
 ## top right colour is required (to make a colour picker gradient) but four
 ## corner colours may also be provided clockwise from the top-right.
-transform color_picker(top_right, bottom_right="#000", bottom_left="#000",
+transform dual_text_color_gradient(top_right, bottom_right="#000", bottom_left="#000",
         top_left="#fff"):
-    shader "feniks.color_picker"
+    shader "dual_text.color_picker"
     u_gradient_top_right Color(top_right).rgba
     u_gradient_top_left Color(top_left).rgba
     u_gradient_bottom_left Color(bottom_left).rgba
@@ -106,7 +109,7 @@ transform color_picker(top_right, bottom_right="#000", bottom_left="#000",
 init python:
 
     import pygame
-    class ColorPicker(renpy.Displayable):
+    class DualTextColorPicker(renpy.Displayable):
         """
         A CDD which allows the player to pick a colour between four
         corner colours, with the typical setup used for a colour picker.
@@ -151,7 +154,7 @@ init python:
                 saved_colors=None, last_saved_color=None, mouseup_callback=None,
                 **kwargs):
             """
-            Create a ColorPicker object.
+            Create a DualTextColorPicker object.
 
             Parameters:
             -----------
@@ -175,7 +178,7 @@ init python:
                 An optional callback or list of callbacks which will be called
                 when the player lifts their mouse after selecting a colour.
             """
-            super(ColorPicker, self).__init__(**kwargs)
+            super(DualTextColorPicker, self).__init__(**kwargs)
             self.xsize = xsize
             self.ysize = ysize
 
@@ -292,16 +295,16 @@ init python:
             if self.top_left is None:
                 trc = self.RED.rotate_hue(self.hue_rotation)
                 # Colorize the picker into a gradient
-                picker = At(self.picker, color_picker(trc))
+                picker = At(self.picker, dual_text_color_gradient(trc))
             else:
                 # Custom four corners; no spectrum sliders
-                picker = At(self.picker, color_picker(
+                picker = At(self.picker, dual_text_color_gradient(
                     self.top_right.rotate_hue(self.hue_rotation),
                     self.bottom_right.rotate_hue(self.hue_rotation),
                     self.bottom_left.rotate_hue(self.hue_rotation),
                     self.top_left.rotate_hue(self.hue_rotation)))
             # Position the selector
-            selector = Transform("selector", anchor=(0.5, 0.5),
+            selector = Transform("dual_text_selector", anchor=(0.5, 0.5),
                 xpos=self.selector_xpos, ypos=self.selector_ypos)
             final = Fixed(picker, selector, xysize=(self.xsize, self.ysize))
             # Render it to the screen
@@ -318,10 +321,10 @@ init python:
             """
             if key is not None and key != self.last_saved_color:
                 refresh_rate = None
-            return DynamicDisplayable(picker_color, picker=self, key=key,
+            return DynamicDisplayable(dual_text_picker_color, picker=self, key=key,
                 xsize=xsize, ysize=ysize, refresh_rate=refresh_rate)
 
-        def hexcode(self, key=None, style='picker_hexcode',
+        def hexcode(self, key=None, style='dual_text_picker_hexcode',
                 refresh_rate=1.0/60.0):
             """
             Returns a DynamicDisplayable for the hex code of the saved color
@@ -330,7 +333,7 @@ init python:
             """
             if key is not None and key != self.last_saved_color:
                 refresh_rate = None
-            return DynamicDisplayable(picker_hexcode, picker=self, key=key,
+            return DynamicDisplayable(dual_text_picker_hexcode, picker=self, key=key,
                 style=style, refresh_rate=refresh_rate)
 
         def SetColor(self, color, key=None):
@@ -410,14 +413,14 @@ init python:
             self.update_hue()
             return None
 
-    def picker_color(st, at, picker, xsize=100, ysize=100, key=None,
+    def dual_text_picker_color(st, at, picker, xsize=100, ysize=100, key=None,
             refresh_rate=1.0/60.0):
         """
         A DynamicDisplayable function to update the colour picker swatch.
 
         Parameters:
         -----------
-        picker : ColorPicker
+        picker : DualTextColorPicker
             The picker this swatch is made from.
         xsize : int
             The width of the swatch.
@@ -428,7 +431,7 @@ init python:
             return Transform(picker.color, xysize=(xsize, ysize)), refresh_rate
         return Transform(picker.get_color(key), xysize=(xsize, ysize)), refresh_rate
 
-    def picker_hexcode(st, at, picker, style='picker_hexcode', key=None,
+    def dual_text_picker_hexcode(st, at, picker, style='dual_text_picker_hexcode', key=None,
             refresh_rate=1.0/60.0):
         """
         A brief DynamicDisplayable demonstration of how to display color
@@ -443,7 +446,7 @@ init python:
 ################################################################################
 init offset = -1
 init python:
-    def construct_selector(w=2, sz=5):
+    def dual_text_construct_selector(w=2, sz=5):
         """
         Constructs a white box surrounded by a black box, to use as a
         selector for the colour picker.
@@ -477,11 +480,11 @@ init python:
 ## These can be changed; see color_picker_examples.rpy for more.
 ## Feel free to remove the constructor function above if you don't use these.
 ## Used for both the spectrum thumb and the colour indicator.
-image selector_img = construct_selector(2, 3)
-image selector_bg = Frame("selector_img", 7, 7)
+image dual_text_selector_img = dual_text_construct_selector(2, 3)
+image dual_text_selector_bg = Frame("dual_text_selector_img", 7, 7)
 ## The image used for the indicator showing the current colour.
-image selector = Transform("selector_bg", xysize=(15, 15))
+image dual_text_selector = Transform("dual_text_selector_bg", xysize=(15, 15))
 
-style picker_hexcode:
+style dual_text_picker_hexcode:
     color "#fff"
     font "DejaVuSans.ttf"
