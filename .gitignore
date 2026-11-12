@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+
+# Files Ren'Py writes when the test game is run or linted in place.
+tests/project/game/cache/
+tests/project/game/saves/
+tests/project/game/*.rpa
+tests/project/**/*.rpyc
+tests/project/*.txt
